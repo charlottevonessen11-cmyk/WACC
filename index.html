@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Capital Structure Optimizer</title>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #dbe3ee;
+      --accent: #0f172a;
+      --accent-soft: #e2e8f0;
+      --good: #334155;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    .wrap {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #0f172a, #334155);
+      color: white;
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 22px;
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 3vw, 44px);
+      line-height: 1.1;
+    }
+
+    .hero p {
+      max-width: 950px;
+      margin: 0;
+      color: rgba(255,255,255,0.84);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 22px;
+    }
+
+    @media (max-width: 1080px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .panel, .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .panel {
+      padding: 18px;
+    }
+
+    .panel h2, .card h2, .card h3 {
+      margin: 0;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .section-title h2 {
+      font-size: 18px;
+    }
+
+    .section-title small {
+      color: var(--muted);
+    }
+
+    .sliders {
+      display: grid;
+      gap: 16px;
+    }
+
+    .slider-block {
+      display: grid;
+      gap: 8px;
+    }
+
+    .slider-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .slider-head .label {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .slider-head .hint {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .slider-head .value {
+      font-size: 14px;
+      font-weight: 700;
+      white-space: nowrap;
+      color: var(--ink);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    @media (max-width: 920px) {
+      .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    .metric {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: white;
+    }
+
+    .metric .kicker {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .metric .big {
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      line-height: 1.1;
+    }
+
+    .metric .sub {
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.45;
+    }
+
+    .main-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1.35fr 0.9fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 1080px) {
+      .chart-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      padding: 18px;
+    }
+
+    .card h2 {
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+      height: 360px;
+      margin-top: 10px;
+    }
+
+    .chart-wrap.small { height: 300px; }
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+
+    .note-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 920px) {
+      .note-grid { grid-template-columns: 1fr; }
+    }
+
+    .notes {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: white;
+    }
+
+    .notes h3 {
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    .notes ol {
+      margin: 0;
+      padding-left: 18px;
+      color: #334155;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .decision {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: white;
+    }
+
+    .decision h3 {
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    .decision p {
+      color: #334155;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .table-like {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .pill {
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1e3a8a;
+      padding: 6px 10px;
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .footer {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div class="pill">Stockholm School of Economics · Teaching tool</div>
+      <h1>Capital Structure Optimizer</h1>
+      <p>
+        Explore how debt and equity affect WACC through tax shields, rising equity risk, and financial distress.
+        The model is intentionally simplified for teaching. Real firms, naturally, insist on making everything messier.
+      </p>
+    </div>
+
+    <div class="grid">
+      <section class="panel">
+        <div class="section-title">
+          <h2>Assumptions</h2>
+          <small>Move the sliders</small>
+        </div>
+        <div class="sliders">
+          <div class="slider-block">
+            <div class="slider-head">
+              <div>
+                <div class="label">Target debt ratio</div>
+                <div class="hint">Debt as a share of enterprise value</div>
+              </div>
+              <div class="value" id="debtRatioLabel">35%</div>
+            </div>
+            <input id="debtRatio" type="range" min="0" max="80" step="1" value="35" />
+          </div>
+
+          <div class="slider-block">
+            <div class="slider-head">
+              <div>
+                <div class="label">Unlevered cost of capital</div>
+                <div class="hint">Business risk before financing effects</div>
+              </div>
+              <div class="value" id="unleveredLabel">9.0%</div>
+            </div>
+            <input id="unleveredReturn" type="range" min="4" max="16" step="0.1" value="9.0" />
+          </div>
+
+          <div class="slider-block">
+            <div class="slider-head">
+              <div>
+                <div class="label">Base pre-tax cost of debt</div>
+                <div class="hint">Starting point before leverage pushes spreads up</div>
+              </div>
+              <div class="value" id="baseDebtLabel">4.0%</div>
+            </div>
+            <input id="baseDebtRate" type="range" min="1" max="10" step="0.1" value="4.0" />
+          </div>
+
+          <div class="slider-block">
+            <div class="slider-head">
+              <div>
+                <div class="label">Corporate tax rate</div>
+                <div class="hint">Determines the value of the tax shield</div>
+              </div>
+              <div class="value" id="taxRateLabel">22.0%</div>
+            </div>
+            <input id="taxRate" type="range" min="0" max="40" step="0.5" value="22" />
+          </div>
+
+          <div class="slider-block">
+            <div class="slider-head">
+              <div>
+                <div class="label">Debt spread sensitivity</div>
+                <div class="hint">How quickly lenders reprice leverage</div>
+              </div>
+              <div class="value" id="spreadLabel">8.0%</div>
+            </div>
+            <input id="spreadSlope" type="range" min="0" max="20" step="0.1" value="8.0" />
+          </div>
+
+          <div class="slider-block">
+            <div class="slider-head">
+              <div>
+                <div class="label">Financial distress intensity</div>
+                <div class="hint">Convex penalty from leverage risk</div>
+              </div>
+              <div class="value" id="distressLabel">6.0%</div>
+            </div>
+            <input id="distressIntensity" type="range" min="0" max="20" step="0.1" value="6.0" />
+          </div>
+        </div>
+      </section>
+
+      <section class="main-grid">
+        <div class="metric-grid">
+          <div class="metric">
+            <div class="kicker">Current WACC</div>
+            <div class="big" id="currentWacc">7.4%</div>
+            <div class="sub">Weighted average cost of capital at the selected leverage</div>
+          </div>
+          <div class="metric">
+            <div class="kicker">Optimal debt ratio</div>
+            <div class="big" id="optimalDebt">32%</div>
+            <div class="sub" id="optimalSub">Minimum model WACC: 7.2%</div>
+          </div>
+          <div class="metric">
+            <div class="kicker">Equity return (Re)</div>
+            <div class="big" id="equityReturn">11.1%</div>
+            <div class="sub" id="spreadSub">Leverage premium of 7.1% before tax effects</div>
+          </div>
+          <div class="metric">
+            <div class="kicker">After-tax debt cost</div>
+            <div class="big" id="afterTaxDebt">3.1%</div>
+            <div class="sub">Debt benefit after the corporate tax shield</div>
+          </div>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric">
+            <div class="kicker">Debt share</div>
+            <div class="big" id="debtShare">35%</div>
+            <div class="sub">Current capital structure choice</div>
+          </div>
+          <div class="metric">
+            <div class="kicker">Equity share</div>
+            <div class="big" id="equityShare">65%</div>
+            <div class="sub">Residual financing weight</div>
+          </div>
+          <div class="metric">
+            <div class="kicker">Tax shield</div>
+            <div class="big" id="taxShield">0.3%</div>
+            <div class="sub">Simple annual benefit proxy</div>
+          </div>
+          <div class="metric">
+            <div class="kicker">Distress cost</div>
+            <div class="big" id="distressCost">0.1%</div>
+            <div class="sub">Nonlinear penalty from leverage</div>
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="card">
+            <h2>WACC frontier</h2>
+            <p>The minimum point depends on tax benefits versus rising financing risk.</p>
+            <div class="chart-wrap"><canvas id="waccChart"></canvas></div>
+          </div>
+          <div class="card">
+            <h2>Capital mix</h2>
+            <p>Current debt versus equity composition.</p>
+            <div class="chart-wrap small"><canvas id="mixChart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="note-grid">
+          <div class="notes">
+            <h3>Teaching notes</h3>
+            <ol>
+              <li>Tax shields lower the effective cost of debt.</li>
+              <li>Higher leverage raises equity risk, so equity return rises faster than debt falls.</li>
+              <li>Distress costs create an interior optimum instead of “more debt is always better,” which would make class discussion unreasonably short.</li>
+            </ol>
+            <div class="footer">
+              Model structure: <strong>WACC = E/V × Re + D/V × Rd × (1 - tax rate) + distress cost</strong>.
+            </div>
+          </div>
+          <div class="decision">
+            <h3>Decision rule</h3>
+            <p>
+              The preferred leverage is the debt ratio that minimizes WACC in this simplified framework.
+              In practice, students should also consider covenants, refinancing risk, agency costs, and market comparables.
+            </p>
+            <div class="table-like">
+              <div class="metric" style="box-shadow:none; margin:0;">
+                <div class="kicker">Leverage effect</div>
+                <div class="sub">Tax shield helps first, then risk dominates.</div>
+              </div>
+              <div class="metric" style="box-shadow:none; margin:0;">
+                <div class="kicker">WACC shape</div>
+                <div class="sub">Usually U-shaped under finite distress costs.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+    const fmt = (n) => `${n.toFixed(1)}%`;
+    const pct = (n) => `${Math.round(n)}%`;
+
+    const inputs = {
+      debtRatio: el('debtRatio'),
+      unleveredReturn: el('unleveredReturn'),
+      baseDebtRate: el('baseDebtRate'),
+      taxRate: el('taxRate'),
+      spreadSlope: el('spreadSlope'),
+      distressIntensity: el('distressIntensity')
+    };
+
+    function calcPoint(debtRatio, baseDebtRate, unleveredReturn, taxRate, debtSpreadSlope, distressIntensity) {
+      const d = debtRatio;
+      const e = 1 - d;
+
+      const rd = clamp(baseDebtRate + debtSpreadSlope * Math.pow(d, 1.6), 0, 0.25);
+      const de = e <= 0.0001 ? 50 : d / e;
+      const re = clamp(unleveredReturn + (unleveredReturn - rd) * de * (1 - taxRate), 0, 0.40);
+      const taxShield = d * rd * taxRate;
+      const distress = distressIntensity * Math.pow(d, 2.2);
+      const wacc = e * re + d * rd * (1 - taxRate) + distress;
+
+      return { debtRatio: d, rd, re, taxShield, distress, wacc };
+    }
+
+    function readState() {
+      return {
+        debtRatio: Number(inputs.debtRatio.value) / 100,
+        unleveredReturn: Number(inputs.unleveredReturn.value) / 100,
+        baseDebtRate: Number(inputs.baseDebtRate.value) / 100,
+        taxRate: Number(inputs.taxRate.value) / 100,
+        debtSpreadSlope: Number(inputs.spreadSlope.value) / 100,
+        distressIntensity: Number(inputs.distressIntensity.value) / 100,
+      };
+    }
+
+    function updateLabels(state) {
+      el('debtRatioLabel').textContent = pct(state.debtRatio * 100);
+      el('unleveredLabel').textContent = fmt(state.unleveredReturn * 100);
+      el('baseDebtLabel').textContent = fmt(state.baseDebtRate * 100);
+      el('taxRateLabel').textContent = fmt(state.taxRate * 100);
+      el('spreadLabel').textContent = fmt(state.debtSpreadSlope * 100);
+      el('distressLabel').textContent = fmt(state.distressIntensity * 100);
+    }
+
+    // --- Simple chart renderer ---
+    function drawChart(canvas, data, options) {
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.floor(rect.width * dpr);
+      canvas.height = Math.floor(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const W = rect.width;
+      const H = rect.height;
+      const pad = { top: 20, right: 18, bottom: 42, left: 54 };
+      const plotW = W - pad.left - pad.right;
+      const plotH = H - pad.top - pad.bottom;
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, W, H);
+
+      const xMin = options.xMin ?? 0;
+      const xMax = options.xMax ?? 80;
+      const yMin = options.yMin ?? 0;
+      const yMax = options.yMax ?? 15;
+
+      const x = (v) => pad.left + ((v - xMin) / (xMax - xMin)) * plotW;
+      const y = (v) => pad.top + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
+
+      // Grid
+      ctx.strokeStyle = '#e5edf6';
+      ctx.lineWidth = 1;
+      ctx.font = '12px Inter, sans-serif';
+      ctx.fillStyle = '#64748b';
+
+      for (let i = 0; i <= 5; i++) {
+        const yy = pad.top + (plotH / 5) * i;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, yy);
+        ctx.lineTo(W - pad.right, yy);
+        ctx.stroke();
+
+        const label = (yMax - (yMax - yMin) * (i / 5)).toFixed(0) + '%';
+        ctx.fillText(label, 10, yy + 4);
+      }
+
+      for (let i = 0; i <= 8; i++) {
+        const xx = pad.left + (plotW / 8) * i;
+        ctx.beginPath();
+        ctx.moveTo(xx, pad.top);
+        ctx.lineTo(xx, H - pad.bottom);
+        ctx.stroke();
+        const label = Math.round(xMin + (xMax - xMin) * (i / 8)) + '%';
+        ctx.fillText(label, xx - 10, H - 16);
+      }
+
+      // Axes
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(pad.left, pad.top);
+      ctx.lineTo(pad.left, H - pad.bottom);
+      ctx.lineTo(W - pad.right, H - pad.bottom);
+      ctx.stroke();
+
+      // Lines
+      function line(series, color, width) {
+        ctx.beginPath();
+        series.forEach((p, i) => {
+          const xx = x(p.x);
+          const yy = y(p.y);
+          if (i === 0) ctx.moveTo(xx, yy); else ctx.lineTo(xx, yy);
+        });
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.stroke();
+      }
+
+      line(data.wacc, '#0f172a', 3);
+      line(data.re, '#64748b', 2);
+      line(data.rdAfterTax, '#94a3b8', 2);
+
+      // Selected point and optimum point
+      function dot(p, color) {
+        ctx.beginPath();
+        ctx.arc(x(p.x), y(p.y), 5.5, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      dot(data.currentWaccPoint, '#0f172a');
+      dot(data.optimalPoint, '#2563eb');
+
+      // Labels
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '600 12px Inter, sans-serif';
+      ctx.fillText('Debt ratio (%)', W / 2 - 38, H - 8);
+      ctx.save();
+      ctx.translate(14, H / 2 + 24);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('Rate (%)', 0, 0);
+      ctx.restore();
+
+      // Legend
+      const legendX = W - pad.right - 210;
+      const legendY = pad.top + 4;
+      const items = [
+        { label: 'WACC', color: '#0f172a' },
+        { label: 'Cost of Equity', color: '#64748b' },
+        { label: 'After-tax Debt', color: '#94a3b8' },
+        { label: 'Current point', color: '#0f172a', dot: true },
+        { label: 'Optimal point', color: '#2563eb', dot: true },
+      ];
+      let yOffset = 0;
+      items.forEach((it) => {
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#dbe3ee';
+        ctx.lineWidth = 1;
+        ctx.fillRect(legendX, legendY + yOffset, 16, 16);
+        ctx.strokeRect(legendX, legendY + yOffset, 16, 16);
+        if (it.dot) {
+          ctx.beginPath();
+          ctx.arc(legendX + 8, legendY + yOffset + 8, 4.5, 0, Math.PI * 2);
+          ctx.fillStyle = it.color;
+          ctx.fill();
+        } else {
+          ctx.beginPath();
+          ctx.moveTo(legendX + 2, legendY + yOffset + 8);
+          ctx.lineTo(legendX + 14, legendY + yOffset + 8);
+          ctx.strokeStyle = it.color;
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+        }
+        ctx.fillStyle = '#334155';
+        ctx.font = '12px Inter, sans-serif';
+        ctx.fillText(it.label, legendX + 24, legendY + yOffset + 12);
+        yOffset += 22;
+      });
+    }
+
+    function redraw() {
+      const s = readState();
+      updateLabels(s);
+
+      const curve = [];
+      for (let i = 0; i <= 80; i++) {
+        const d = i / 100;
+        curve.push(calcPoint(d, s.baseDebtRate, s.unleveredReturn, s.taxRate, s.debtSpreadSlope, s.distressIntensity));
+      }
+      const current = calcPoint(s.debtRatio, s.baseDebtRate, s.unleveredReturn, s.taxRate, s.debtSpreadSlope, s.distressIntensity);
+      const optimal = curve.reduce((best, pt) => (pt.wacc < best.wacc ? pt : best), curve[0]);
+
+      const chartData = {
+        wacc: curve.map((p) => ({ x: p.debtRatio * 100, y: p.wacc * 100 })),
+        re: curve.map((p) => ({ x: p.debtRatio * 100, y: p.re * 100 })),
+        rdAfterTax: curve.map((p) => ({ x: p.debtRatio * 100, y: p.rd * (1 - s.taxRate) * 100 })),
+        currentWaccPoint: { x: current.debtRatio * 100, y: current.wacc * 100 },
+        optimalPoint: { x: optimal.debtRatio * 100, y: optimal.wacc * 100 },
+      };
+
+      el('currentWacc').textContent = fmt(current.wacc * 100);
+      el('optimalDebt').textContent = pct(optimal.debtRatio * 100);
+      el('optimalSub').textContent = `Minimum model WACC: ${fmt(optimal.wacc * 100)}`;
+      el('equityReturn').textContent = fmt(current.re * 100);
+      el('spreadSub').textContent = `Leverage premium of ${fmt((current.re - current.rd) * 100)} before tax effects`;
+      el('afterTaxDebt').textContent = fmt(current.rd * (1 - s.taxRate) * 100);
+      el('debtShare').textContent = pct(s.debtRatio * 100);
+      el('equityShare').textContent = pct((1 - s.debtRatio) * 100);
+      el('taxShield').textContent = fmt(current.taxShield * 100);
+      el('distressCost').textContent = fmt(current.distress * 100);
+
+      drawChart(el('waccChart'), chartData, { yMin: 0, yMax: Math.max(16, Math.ceil(Math.max(...curve.map(c => c.re * 100), ...curve.map(c => c.wacc * 100)) / 2) * 2) });
+      drawChart(el('mixChart'), {
+        wacc: [{ x: 0, y: 0 }],
+        re: [{ x: 0, y: 0 }],
+        rdAfterTax: [{ x: 0, y: 0 }],
+        currentWaccPoint: { x: 0, y: 0 },
+        optimalPoint: { x: 0, y: 0 },
+      }, { xMin: 0, xMax: 100, yMin: 0, yMax: 100 });
+
+      // Draw a simple composition bar chart on the second canvas.
+      const canvas = el('mixChart');
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.floor(rect.width * dpr);
+      canvas.height = Math.floor(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const W = rect.width;
+      const H = rect.height;
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, W, H);
+
+      const barX = W * 0.28;
+      const barY = 48;
+      const barW = W * 0.22;
+      const barH = H - 130;
+      const debtH = barH * s.debtRatio;
+      const eqH = barH - debtH;
+
+      // grid lines
+      ctx.strokeStyle = '#e5edf6';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const yy = barY + (barH / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(30, yy);
+        ctx.lineTo(W - 30, yy);
+        ctx.stroke();
+      }
+
+      // stack
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(barX, barY + eqH, barW, debtH);
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(barX, barY, barW, eqH);
+
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.strokeRect(barX, barY, barW, barH);
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '700 13px Inter, sans-serif';
+      ctx.fillText(`Equity ${pct((1 - s.debtRatio) * 100)}`, barX + barW + 24, barY + eqH - 8);
+      ctx.fillText(`Debt ${pct(s.debtRatio * 100)}`, barX + barW + 24, barY + eqH + 20);
+
+      ctx.fillStyle = '#475569';
+      ctx.font = '12px Inter, sans-serif';
+      ctx.fillText('Capital structure', 32, 24);
+      ctx.fillText('100%', 12, barY + 6);
+      ctx.fillText('0%', 22, barY + barH + 4);
+
+      // mini annotation
+      ctx.fillStyle = '#334155';
+      ctx.font = '600 12px Inter, sans-serif';
+      ctx.fillText('Current mix', 32, H - 20);
+    }
+
+    Object.values(inputs).forEach((input) => input.addEventListener('input', redraw));
+    window.addEventListener('resize', redraw);
+    window.addEventListener('load', redraw);
+  </script>
+</body>
+</html>
